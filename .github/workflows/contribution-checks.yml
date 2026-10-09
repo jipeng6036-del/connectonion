@@ -25,11 +25,15 @@ jobs:
         run: |
           python -m pip install uv==0.10.12
           uv sync --frozen --extra dev
-      - name: Full offline suite and coverage
+      - name: Exact upstream primary CI selection and coverage
         env:
           OPENONION_API_KEY: test-key
           TZ: UTC
-        run: uv run --frozen --extra dev make cov PYTEST="pytest -q --junitxml=results.xml --cov-fail-under=78"
+        run: |
+          uv run --frozen --extra dev pytest tests/ -n auto --dist loadfile --tb=short \
+            -m "not slow and not real_api and not network" \
+            --cov=connectonion --cov-report=term-missing:skip-covered --cov-report=xml \
+            --cov-fail-under=78 --junitxml=results.xml
       - name: Save actual outcomes
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
